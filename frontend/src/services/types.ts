@@ -52,6 +52,12 @@ export interface User {
     data?: T
     error?: string
     message?: string
+    pagination?: {
+      page: number
+      limit: number
+      total: number
+      totalPages: number
+    }
   }
   
   export interface APIError {
