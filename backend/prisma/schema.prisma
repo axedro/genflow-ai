@@ -1,0 +1,206 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Management
+model User {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  passwordHash     String?
+  firstName        String
+  lastName         String
+  avatar           String?
+  emailVerified    DateTime?
+  twoFactorEnabled Boolean   @default(false)
+  language         String    @default("es")
+  timezone         String    @default("Europe/Madrid")
+  lastLoginAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  
+  // Relationships
+  workspaces    WorkspaceUser[]
+  sessions      Session[]
+  oauthAccounts OAuthAccount[]
+  
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("sessions")
+}
+
+model OAuthAccount {
+  id           String @id @default(cuid())
+  userId       String
+  provider     String
+  providerId   String
+  accessToken  String @db.Text
+  refreshToken String? @db.Text
+  expiresAt    DateTime?
+  scopes       String[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([provider, providerId])
+  @@map("oauth_accounts")
+}
+
+// Workspace Management
+model Workspace {
+  id          String @id @default(cuid())
+  name        String
+  description String?
+  industry    String?
+  companySize String?
+  settings    Json   @default("{}")
+  plan        String @default("freemium")
+  aiUsage     Int    @default(0)
+  aiLimit     Int    @default(100)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relationships
+  users        WorkspaceUser[]
+  workflows    Workflow[]
+  executions   Execution[]
+  integrations Integration[]
+  aiInteractions AIInteraction[]
+  
+  @@map("workspaces")
+}
+
+model WorkspaceUser {
+  id          String @id @default(cuid())
+  workspaceId String
+  userId      String
+  role        Role   @default(USER)
+  invitedAt   DateTime?
+  joinedAt    DateTime?
+  createdAt   DateTime @default(now())
+  
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([workspaceId, userId])
+  @@map("workspace_users")
+}
+
+// Workflow Management (Basic structure for Sprint 1)
+model Workflow {
+  id           String  @id @default(cuid())
+  workspaceId  String
+  name         String
+  description  String?
+  definition   Json    @default("{}")
+  isActive     Boolean @default(false)
+  category     String?
+  tags         String[]
+  aiGenerated  Boolean @default(false)
+  aiPrompt     String?
+  aiConfidence Float?
+  version      Int     @default(1)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  workspace  Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  executions Execution[]
+  
+  @@map("workflows")
+}
+
+// Execution Management (Basic structure for Sprint 1)
+model Execution {
+  id          String @id @default(cuid())
+  workflowId  String
+  workspaceId String
+  status      ExecutionStatus @default(PENDING)
+  trigger     String
+  context     Json   @default("{}")
+  result      Json?
+  error       String?
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  duration    Int?
+  
+  workflow  Workflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  
+  @@map("executions")
+}
+
+// Integration Management (Basic structure for Sprint 1)
+model Integration {
+  id           String @id @default(cuid())
+  workspaceId  String
+  provider     String
+  accountId    String
+  displayName  String
+  accessToken  String @db.Text
+  refreshToken String? @db.Text
+  expiresAt    DateTime?
+  scopes       String[]
+  settings     Json @default("{}")
+  isActive     Boolean @default(true)
+  lastSyncAt   DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  
+  @@unique([workspaceId, provider, accountId])
+  @@map("integrations")
+}
+
+// AI Management
+model AIInteraction {
+  id          String @id @default(cuid())
+  workspaceId String
+  type        String
+  prompt      String @db.Text
+  response    Json
+  model       String
+  tokens      Int
+  cost        Float?
+  confidence  Float?
+  userRating  Int?
+  feedback    String?
+  createdAt   DateTime @default(now())
+  
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  
+  @@map("ai_interactions")
+}
+
+// Enums
+enum Role {
+  OWNER
+  ADMIN
+  USER
+  VIEWER
+}
+
+enum ExecutionStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}

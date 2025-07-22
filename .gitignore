@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Environment files
+.env
+.env.local
+.env.production
+*.env
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Database
+*.sqlite
+*.db
+
+# Logs
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+*.dockerfile.local
+
+# Terraform
+*.tfstate
+*.tfstate.backup
+.terraform/
