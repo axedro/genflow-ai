@@ -15,13 +15,6 @@ import { healthRoutes } from './routes/health.routes'
 // Import middleware
 import { errorHandler, notFoundHandler } from './middleware/error.middleware'
 
-// Add these imports
-import { aiWorkflowRoutes } from './routes/ai-workflow.routes'
-import { workflowRoutes } from './routes/workflow.routes'
-
-// Add import
-import { templateRoutes } from './routes/template.routes'
-
 const app = express()
 
 // Trust proxy for accurate IP addresses
@@ -104,12 +97,5 @@ app.use(notFoundHandler)
 
 // Global error handler (must be last)
 app.use(errorHandler)
-
-// Add these routes after existing routes
-app.use('/api/ai/workflows', aiWorkflowRoutes)
-app.use('/api/workflows', workflowRoutes)
-
-// Add route
-app.use('/api/templates', templateRoutes)
 
 export { app }
