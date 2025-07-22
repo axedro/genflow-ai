@@ -109,36 +109,16 @@ model Workflow {
   workspaceId  String
   name         String
   description  String?
-  definition   Json    // Enhanced workflow definition
+  definition   Json    @default("{}")
   isActive     Boolean @default(false)
   category     String?
   tags         String[]
-  
-  // AI Enhancement fields
   aiGenerated  Boolean @default(false)
-  aiPrompt     String? @db.Text
+  aiPrompt     String?
   aiConfidence Float?
-  aiModel      String? // "gpt-4", "gpt-3.5-turbo"
-  
-  // Workflow metadata
   version      Int     @default(1)
-  trigger      Json?   // Trigger configuration
-  variables    Json    @default("{}") // Workflow variables
-  
-  // Performance metrics
-  totalExecutions      Int @default(0)
-  successfulExecutions Int @default(0)
-  averageExecutionTime Int? // in milliseconds
-  lastExecutedAt       DateTime?
-  
-  // Template fields
-  isTemplate   Boolean @default(false)
-  templateCategory String?
-  industry     String?
-  usageCount   Int @default(0)
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
   
   workspace  Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   executions Execution[]
@@ -207,27 +187,6 @@ model AIInteraction {
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   
   @@map("ai_interactions")
-}
-
-// Add new model for workflow templates
-model WorkflowTemplate {
-  id          String @id @default(cuid())
-  name        String
-  description String
-  category    String
-  industry    String?
-  definition  Json
-  preview     String? // Preview image or description
-  tags        String[]
-  usageCount  Int @default(0)
-  rating      Float?
-  isPublic    Boolean @default(true)
-  createdBy   String? // User ID who created it
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  @@map("workflow_templates")
 }
 
 // Enums
